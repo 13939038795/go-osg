@@ -21,7 +21,7 @@ func getTexWidth(obj interface{}) interface{} {
 
 func setTexWidth(obj interface{}, val interface{}) {
 	td := obj.(*model.Texture)
-	td.TextureWidth = val.(uint64)
+	td.TextureWidth = val.(uint32)
 }
 
 func getTexHeight(obj interface{}) interface{} {
@@ -31,18 +31,18 @@ func getTexHeight(obj interface{}) interface{} {
 
 func setTexHeight(obj interface{}, val interface{}) {
 	td := obj.(*model.Texture)
-	td.TextureWidth = val.(uint64)
+	td.TextureWidth = val.(uint32)
 }
 
 func init() {
 	fn := func() interface{} {
 		td := model.NewTexture1d()
-		return &td
+		return td
 	}
 	wrap := NewObjectWrapper("Texture1D", fn, "osg::Object osg::StateAttribute osg::Texture osg::Texture1D")
-	ser1 := NewImageSerializer("Image", getImage, setRectImage)
+	ser1 := NewImageSerializer("Image", getImage, setImage)
 	ser2 := NewPropByValSerializer("TextureWidth", false, getTexWidth, setTexWidth)
-	wrap.AddSerializer(&ser1, RWIMAGE)
-	wrap.AddSerializer(&ser2, RWUINT)
-	GetObjectWrapperManager().AddWrap(&wrap)
+	wrap.AddSerializer(ser1, RWIMAGE)
+	wrap.AddSerializer(ser2, RWUINT)
+	GetObjectWrapperManager().AddWrap(wrap)
 }

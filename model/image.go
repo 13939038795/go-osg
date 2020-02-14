@@ -3,7 +3,7 @@ package model
 import (
 	"math"
 
-	"github.com/ungerik/go3d/vec3"
+	"github.com/flywave/go3d/vec3"
 )
 
 const (
@@ -39,10 +39,10 @@ type Image struct {
 	Data           []uint8
 }
 
-func NewImage() Image {
+func NewImage() *Image {
 	b := NewBufferData()
 	b.Type = IMAGET
-	return Image{BufferData: b, S: 0, T: 0, R: 0, RowLength: 0, InternalTextureFormat: 0, PixelFormat: 0, DataType: 0, Packing: 4, PixelAspectRatio: 1, AllocationMode: USENEWDELETE}
+	return &Image{BufferData: *b, S: 0, T: 0, R: 0, RowLength: 0, InternalTextureFormat: 0, PixelFormat: 0, DataType: 0, Packing: 4, PixelAspectRatio: 1, AllocationMode: USENEWDELETE}
 }
 
 func IsPackedType(t int) bool {

@@ -13,7 +13,6 @@ type ComputeBoundingBoxCallback struct {
 }
 
 type DrawableInterface interface {
-	IsDrawableInterface() bool
 	GetBoundingBox() *[2][3]float32
 	SetBoundingBox(*[2][3]float32)
 	GetShape() *Shape
@@ -42,10 +41,6 @@ type Drawable struct {
 
 	BoxCallback *ComputeBoundingBoxCallback
 	DwCallback  *DrawCallback
-}
-
-func (d *Drawable) IsDrawableInterface() bool {
-	return true
 }
 
 func (d *Drawable) GetBoundingBox() *[2][3]float32 {
@@ -93,8 +88,8 @@ func (d *Drawable) SetDwCallback(cb *DrawCallback) {
 	d.DwCallback = cb
 }
 
-func NewDrawable() Drawable {
+func NewDrawable() *Drawable {
 	n := NewNode()
 	n.Type = DRAWABLET
-	return Drawable{Node: n}
+	return &Drawable{Node: *n}
 }

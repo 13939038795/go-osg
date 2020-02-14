@@ -20,7 +20,7 @@ func getTextureWidthRec(obj interface{}) interface{} {
 }
 func setTextureWidthRec(obj interface{}, val interface{}) {
 	t := obj.(*model.TextureRectangle)
-	t.TextureWidth = val.(uint64)
+	t.TextureWidth = val.(uint32)
 }
 
 func getTextureHeightRec(obj interface{}) interface{} {
@@ -29,21 +29,21 @@ func getTextureHeightRec(obj interface{}) interface{} {
 }
 func setTextureHeightRec(obj interface{}, val interface{}) {
 	t := obj.(*model.TextureRectangle)
-	t.TextureHeight = val.(uint64)
+	t.TextureHeight = val.(uint32)
 }
 
 func init() {
 	fn := func() interface{} {
 		tg := model.NewTextureRectangle()
-		return &tg
+		return tg
 	}
-	wrap := NewObjectWrapper2("TextureRectangle", "flywave::osg::texturerectangle", fn, "osg::Object osg::StateAttribute osg::Texture osg::TextureRectangle")
+	wrap := NewObjectWrapper("TextureRectangle", fn, "osg::Object osg::StateAttribute osg::Texture osg::TextureRectangle")
 	ser1 := NewImageSerializer("Image", getRectImage, setRectImage)
 	ser2 := NewPropByValSerializer("TextureWidth", false, getTextureWidthRec, setTextureWidthRec)
 	ser3 := NewPropByValSerializer("TextureHeight", false, getTextureHeightRec, setTextureHeightRec)
-	wrap.AddSerializer(&ser1, RWIMAGE)
-	wrap.AddSerializer(&ser2, RWINT)
-	wrap.AddSerializer(&ser3, RWINT)
-	GetObjectWrapperManager().AddWrap(&wrap)
+	wrap.AddSerializer(ser1, RWIMAGE)
+	wrap.AddSerializer(ser2, RWINT)
+	wrap.AddSerializer(ser3, RWINT)
+	GetObjectWrapperManager().AddWrap(wrap)
 
 }

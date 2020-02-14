@@ -57,7 +57,7 @@ func readAttributes(is *OsgIstream, attr model.AttributeListType) {
 			val := readValue(is)
 			sa, ok := ob.(model.StateAttributeInterface)
 			if ok {
-				rp := model.RefAttributePair{ob, val} //TODO
+				rp := model.RefAttributePair{sa, val}
 				attr[sa.GetType()] = &rp
 			}
 		}
@@ -376,9 +376,9 @@ func setEventCallbackSS(obj interface{}, val interface{}) {
 func init() {
 	fn := func() interface{} {
 		ss := model.NewStateSet()
-		return &ss
+		return ss
 	}
-	wrap := NewObjectWrapper2("StateSet", "flywave::osg::stateset", fn, "osg::Object osg::StateSet")
+	wrap := NewObjectWrapper("StateSet", fn, "osg::Object osg::StateSet")
 	ser1 := NewUserSerializer("ModeList", checkModeList, readModeList, writeModeList)
 	ser2 := NewUserSerializer("AttributeList", checkAttributeList, readAttributeList, writeAttributeList)
 	ser3 := NewUserSerializer("TextureModeList", checkTextureModeList, readTextureModeList, writeTextureModeList)
@@ -392,18 +392,23 @@ func init() {
 	ser11 := NewObjectSerializer("UpdateCallback", getUpdateCallbackSS, setUpdateCallbackSS)
 	ser12 := NewObjectSerializer("EventCallback", getEventCallbackSS, setEventCallbackSS)
 
-	wrap.AddSerializer(&ser1, RWUSER)
-	wrap.AddSerializer(&ser2, RWUSER)
-	wrap.AddSerializer(&ser3, RWUSER)
-	wrap.AddSerializer(&ser4, RWUSER)
-	wrap.AddSerializer(&ser5, RWUSER)
+	wrap.AddSerializer(ser1, RWUSER)
+	wrap.AddSerializer(ser2, RWUSER)
+	wrap.AddSerializer(ser3, RWUSER)
+	wrap.AddSerializer(ser4, RWUSER)
+	wrap.AddSerializer(ser5, RWUSER)
 
-	wrap.AddSerializer(&ser6, RWINT)
-	wrap.AddSerializer(&ser7, RWINT)
-	wrap.AddSerializer(&ser8, RWINT)
-	wrap.AddSerializer(&ser9, RWSTRING)
-	wrap.AddSerializer(&ser10, RWBOOL)
-	wrap.AddSerializer(&ser11, RWOBJECT)
-	wrap.AddSerializer(&ser12, RWOBJECT)
-	GetObjectWrapperManager().AddWrap(&wrap)
+	wrap.AddSerializer(ser6, RWINT)
+	wrap.AddSerializer(ser7, RWINT)
+	wrap.AddSerializer(ser8, RWINT)
+	wrap.AddSerializer(ser9, RWSTRING)
+	wrap.AddSerializer(ser10, RWBOOL)
+	wrap.AddSerializer(ser11, RWOBJECT)
+	wrap.AddSerializer(ser12, RWOBJECT)
+	GetObjectWrapperManager().AddWrap(wrap)
+	{
+		uv := AddUpdateWrapperVersionProxy(wrap, 151)
+		wrap.MarkSerializerAsAdded("DefineList")
+		uv.SetLastVersion()
+	}
 }

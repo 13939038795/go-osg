@@ -22,8 +22,8 @@ type OsgOptions struct {
 	Compressed bool
 }
 
-func NewOsgOptions() OsgOptions {
-	return OsgOptions{FileType: FileType}
+func NewOsgOptions() *OsgOptions {
+	return &OsgOptions{FileType: FileType}
 }
 
 const (
@@ -40,9 +40,9 @@ type OsgIstreamOptions struct {
 	ForceReadingImage bool
 }
 
-func NewOsgIstreamOptions() OsgIstreamOptions {
+func NewOsgIstreamOptions() *OsgIstreamOptions {
 	op := NewOsgOptions()
-	return OsgIstreamOptions{OsgOptions: op}
+	return &OsgIstreamOptions{OsgOptions: *op}
 }
 
 type StreamHeader struct {
@@ -75,7 +75,7 @@ type OsgIstream struct {
 	ENDBRACKET   *model.ObjectMark
 }
 
-func NewOsgIstream(opt *OsgIstreamOptions) OsgIstream {
+func NewOsgIstream(opt *OsgIstreamOptions) *OsgIstream {
 	p := model.NewObjectProperty()
 	bb := model.NewObjectMark()
 	bb.Name = "{"
@@ -83,12 +83,12 @@ func NewOsgIstream(opt *OsgIstreamOptions) OsgIstream {
 	eb := model.NewObjectMark()
 	eb.Name = "}"
 	eb.IndentDelta = -INDENT_VALUE
-	is := OsgIstream{ArrayMap: make(map[int32]*model.Array), Options: opt, IdentifierMap: make(map[int32]interface{}), DomainVersionMap: make(map[string]int32), PROPERTY: &p, BEGINBRACKET: &bb, ENDBRACKET: &eb}
+	is := &OsgIstream{ArrayMap: make(map[int32]*model.Array), Options: opt, IdentifierMap: make(map[int32]interface{}), DomainVersionMap: make(map[string]int32), PROPERTY: p, BEGINBRACKET: bb, ENDBRACKET: eb}
 	if opt.ForceReadingImage {
 		is.ForceReadingImage = true
 	}
 	obj := model.NewObject()
-	is.DummyReadObject = &obj
+	is.DummyReadObject = obj
 	if len(opt.Domain) > 0 {
 		domains := strings.Split(opt.Domain, ";")
 		for _, str := range domains {
@@ -128,10 +128,18 @@ func (is *OsgIstream) Read(inter interface{}) {
 		is.In.ReadUShort(val)
 		break
 	case *int:
+		var t int32
+		is.In.ReadInt(&t)
+		*val = int(t)
+		break
 	case *int32:
 		is.In.ReadInt((*int32)(val))
 		break
 	case *uint:
+		var t uint32
+		is.In.ReadUInt(&t)
+		*val = uint(t)
+		break
 	case *uint32:
 		is.In.ReadUInt((*uint32)(val))
 		break
@@ -328,9 +336,6 @@ func (is *OsgIstream) Read(inter interface{}) {
 	case *model.ObjectMark:
 		is.In.ReadMark(val)
 		break
-	case *model.PrimitiveSet:
-		inter = is.ReadPrimitiveSet()
-		break
 	}
 }
 
@@ -394,7 +399,7 @@ func (is *OsgIstream) ReadArray() *model.Array {
 	var size int32
 	is.Read(&size)
 	is.Read(is.BEGINBRACKET)
-	var arry model.Array
+	var arry *model.Array
 	switch ty.Value {
 	case model.IDBYTEARRAY:
 		{
@@ -734,7 +739,7 @@ func (is *OsgIstream) ReadArray() *model.Array {
 		}
 	}
 	is.Read(is.ENDBRACKET)
-	return &arry
+	return arry
 }
 
 func (is *OsgIstream) ReadPrimitiveSet() interface{} {
@@ -759,7 +764,7 @@ func (is *OsgIstream) ReadPrimitiveSet() interface{} {
 			da.First = first
 			da.Count = count
 			da.NumInstances = numInstances
-			return &da
+			return da
 		case model.IDDRAWARRAYLENGTH:
 			is.Read(&first)
 			is.Read(&size)
@@ -774,7 +779,7 @@ func (is *OsgIstream) ReadPrimitiveSet() interface{} {
 			}
 			is.Read(is.ENDBRACKET)
 			dl.NumInstances = numInstances
-			return &dl
+			return dl
 		case model.IDDRAWELEMENTSUBYTE:
 			is.Read(&size)
 			is.Read(is.BEGINBRACKET)
@@ -786,7 +791,7 @@ func (is *OsgIstream) ReadPrimitiveSet() interface{} {
 			}
 			is.Read(is.ENDBRACKET)
 			de.NumInstances = numInstances
-			return &de
+			return de
 		case model.IDDRAWELEMENTSUSHORT:
 			is.Read(&size)
 			is.Read(is.BEGINBRACKET)
@@ -810,7 +815,7 @@ func (is *OsgIstream) ReadPrimitiveSet() interface{} {
 			}
 			is.Read(is.ENDBRACKET)
 			duint.NumInstances = numInstances
-			return &duint
+			return duint
 		}
 	}
 	return nil
@@ -902,8 +907,7 @@ func (is *OsgIstream) ReadImage(readFromExternal bool) *model.Image {
 			}
 			is.Read(is.ENDBRACKET)
 		}
-		nm := model.NewImage()
-		img = &nm
+		img = model.NewImage()
 		img.Origin = imgdata.Origin
 		img.S = imgdata.S
 		img.T = imgdata.T
@@ -926,8 +930,7 @@ func (is *OsgIstream) ReadImage(readFromExternal bool) *model.Image {
 					sub := strings.Split(name, ".")
 					opts.FileType = sub[len(sub)-1]
 					buf := bytes.NewBuffer(dt)
-					rd := bufio.NewReader(buf)
-					img = rw.ReadImageWithReader(rd, &opts).GetImage()
+					img = rw.ReadImageWithReader(buf, &opts).GetImage()
 				}
 			}
 		}
@@ -942,19 +945,17 @@ func (is *OsgIstream) ReadImage(readFromExternal bool) *model.Image {
 	if readFromExternal && name != "" {
 		rw := getReaderWriter()
 		img = rw.ReadImage(name, &opts).GetImage()
-		return img
+	}
+	if loadedFromCache {
+		img2 := is.ReadObjectFields("osg::object", id, img)
+		return img2.(*model.Image)
 	} else {
-		if loadedFromCache {
-			img2 := is.ReadObjectFields("osg::Image", id, nil)
-			return img2.(*model.Image)
-		} else {
-			img2 := is.ReadObjectFields("osg::Image", id, nil)
-			img = img2.(*model.Image)
-			img.Name = name
-			img.WriteHint = writeHint
-			is.IdentifierMap[id] = img
-			return img
-		}
+		img2 := is.ReadObjectFields("osg::object", id, img)
+		img = img2.(*model.Image)
+		img.Name = name
+		img.WriteHint = writeHint
+		is.IdentifierMap[id] = img
+		return img
 	}
 }
 
@@ -1006,7 +1007,7 @@ func (is *OsgIstream) ReadObjectFields(className string, id int32, obj interface
 }
 
 func (is *OsgIstream) ReadSize() int {
-	var size int32
+	var size uint32
 	is.Read(&size)
 	return int(size)
 }
@@ -1089,9 +1090,9 @@ func (is *OsgIstream) Start(iter OsgInputIterator) (uint32, error) {
 	return header.Type, nil
 }
 
-func (is *OsgIstream) Decompress() {
+func (is *OsgIstream) Decompress() error {
 	if !is.IsBinary() {
-		return
+		return nil
 	}
 	is.Fields = []string{}
 	compressorName := is.ReadString()
@@ -1099,10 +1100,12 @@ func (is *OsgIstream) Decompress() {
 		is.Fields = append(is.Fields, compressorName)
 		compressor := GetObjectWrapperManager().FindCompressor(compressorName)
 		if compressor == nil {
-			panic("inputstream: Failed to decompress stream, No such compressor.")
+			return errors.New("inputstream: Failed to decompress stream, No such compressor.")
 		}
-		var src []byte
-		compressor.DeCompress(is.In.GetIterator(), src)
+		src, e := compressor.DeCompress(is.In.GetIterator())
+		if e != nil {
+			return e
+		}
 		bufReader := bytes.NewBuffer(src)
 		is.In.SetIterator(bufio.NewReader(bufReader))
 		is.Fields = is.Fields[:len(is.Fields)-1]
@@ -1110,6 +1113,7 @@ func (is *OsgIstream) Decompress() {
 	if is.UseSchemaData {
 		is.Fields = append(is.Fields, "SchemaData")
 	}
+	return nil
 }
 
 func trimEnclosingSpaces(str string) string {

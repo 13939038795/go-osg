@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/base64"
+	"errors"
 	"io"
 	"os"
 	"strconv"
@@ -72,7 +73,7 @@ type OsgOstream struct {
 	CRLF         *CrlfType
 }
 
-func NewOsgOstream(opts *OsgOstreamOptions) OsgOstream {
+func NewOsgOstream(opts *OsgOstreamOptions) *OsgOstream {
 	p := model.NewObjectProperty()
 	bb := model.NewObjectMark()
 	bb.Name = "{"
@@ -80,7 +81,7 @@ func NewOsgOstream(opts *OsgOstreamOptions) OsgOstream {
 	eb := model.NewObjectMark()
 	bb.Name = "}"
 	bb.IndentDelta = -INDENT_VALUE
-	osg := OsgOstream{PROPERTY: &p, BEGINBRACKET: &bb, ENDBRACKET: &eb, CRLF: &CrlfType{}, TargetFileVersion: OPENSCENEGRAPHSOVERSION, UseRobustBinaryFormat: true, UseSchemaData: false}
+	osg := &OsgOstream{PROPERTY: p, BEGINBRACKET: bb, ENDBRACKET: eb, CRLF: &CrlfType{}, TargetFileVersion: OPENSCENEGRAPHSOVERSION, UseRobustBinaryFormat: true, UseSchemaData: false}
 	osg.Options = opts
 	if !opts.UseRobustBinaryFormat {
 		osg.UseRobustBinaryFormat = false
@@ -1108,12 +1109,12 @@ func (ostream *OsgOstream) WriteObjectFileds(obj interface{}, name string) {
 	}
 }
 
-func (ostream *OsgOstream) Start(out OsgOutputIterator, ty int32) {
+func (ostream *OsgOstream) Start(out OsgOutputIterator, ty int32) error {
 	ostream.Fields = []string{}
 	ostream.Fields = append(ostream.Fields, "Start")
 	ostream.Out = out
 	if out == nil {
-		panic("outiterator is nil")
+		return errors.New("outiterator is nil")
 	}
 	ostream.Out.SetOutputSteam(ostream)
 	if ostream.IsBinary() {
@@ -1175,11 +1176,12 @@ func (ostream *OsgOstream) Start(out OsgOutputIterator, ty int32) {
 		ostream.Write(ostream.CRLF)
 		ostream.Fields = ostream.Fields[:len(ostream.Fields)-1]
 	}
+	return nil
 }
 
-func (ostream *OsgOstream) Compress() []byte {
+func (ostream *OsgOstream) Compress(buff *bytes.Buffer) []byte {
 	if !ostream.IsBinary() || ostream.CompressorName == "" {
-		return ostream.Data
+		return buff.Bytes()
 	}
 	ostream.Fields = []string{}
 	if ostream.UseSchemaData {
@@ -1198,10 +1200,10 @@ func (ostream *OsgOstream) Compress() []byte {
 	ostream.Fields = append(ostream.Fields, "Compression")
 	compress_wrap := GetObjectWrapperManager().FindCompressor(ostream.CompressorName)
 	if compress_wrap == nil {
-		return ostream.Data
+		return buff.Bytes()
 	}
 	ostream.Write(&schemaSource)
 	var compresseData []byte
-	compress_wrap.Compress(ostream.Out.GetIterator(), compresseData)
+	compress_wrap.Compress(buff, compresseData)
 	return compresseData
 }

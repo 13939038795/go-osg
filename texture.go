@@ -13,7 +13,7 @@ func checkWRAPS(obj interface{}) bool {
 func readWRAPS(is *OsgIstream, obj interface{}) {
 	tex := obj.(*model.Texture)
 	mode := model.NewObjectGlenum()
-	is.Read(&mode)
+	is.Read(mode)
 	tex.SetWrap(model.WRAPS, int(mode.Value))
 }
 
@@ -30,7 +30,7 @@ func checkWRAPT(obj interface{}) bool {
 func readWRAPT(is *OsgIstream, obj interface{}) {
 	tex := obj.(*model.Texture)
 	mode := model.NewObjectGlenum()
-	is.Read(&mode)
+	is.Read(mode)
 	tex.SetWrap(model.WRAPT, int(mode.Value))
 }
 
@@ -47,7 +47,7 @@ func checkWRAPR(obj interface{}) bool {
 func readWRAPR(is *OsgIstream, obj interface{}) {
 	tex := obj.(*model.Texture)
 	mode := model.NewObjectGlenum()
-	is.Read(&mode)
+	is.Read(mode)
 	tex.SetWrap(model.WRAPR, int(mode.Value))
 }
 
@@ -64,7 +64,7 @@ func checkMINFILTER(obj interface{}) bool {
 func readMINFILTER(is *OsgIstream, obj interface{}) {
 	tex := obj.(*model.Texture)
 	mode := model.NewObjectGlenum()
-	is.Read(&mode)
+	is.Read(mode)
 	tex.SetFilter(model.MINFILTER, int(mode.Value))
 }
 
@@ -81,7 +81,7 @@ func checkMAGFILTER(obj interface{}) bool {
 func readMAGFILTER(is *OsgIstream, obj interface{}) {
 	tex := obj.(*model.Texture)
 	mode := model.NewObjectGlenum()
-	is.Read(&mode)
+	is.Read(mode)
 	tex.SetFilter(model.MAGFILTER, int(mode.Value))
 }
 
@@ -133,7 +133,7 @@ func checkInternalFormat(obj interface{}) bool {
 func readInternalFormat(is *OsgIstream, obj interface{}) {
 	tex := obj.(*model.Texture)
 	mode := model.NewObjectGlenum()
-	is.Read(&mode)
+	is.Read(mode)
 	if tex.InternalFormat == model.USEUSERDEFINEDFORMAT {
 		tex.InternalFormat = int(mode.Value)
 	}
@@ -167,12 +167,12 @@ func checkImageAttachment(obj interface{}) bool {
 }
 
 func readImageAttachment(is *OsgIstream, obj interface{}) {
-	is.Read(attachment1.unit)
-	is.Read(attachment1.level)
-	is.Read(attachment1.layered)
-	is.Read(attachment1.layer)
-	is.Read(attachment1.access)
-	is.Read(attachment1.format)
+	is.Read(&attachment1.unit)
+	is.Read(&attachment1.level)
+	is.Read(&attachment1.layered)
+	is.Read(&attachment1.layer)
+	is.Read(&attachment1.access)
+	is.Read(&attachment1.format)
 }
 
 func writeImageAttachment(os *OsgOstream, obj interface{}) {
@@ -334,7 +334,7 @@ func getInternalFormatMode(obj interface{}) interface{} {
 
 func setInternalFormatMode(obj interface{}, val interface{}) {
 	tex := obj.(*model.Texture)
-	tex.InternalFormatMode = val.(model.InternalFormatMode)
+	tex.InternalFormatMode = val.(uint32)
 }
 
 func getShadowComparison(obj interface{}) interface{} {
@@ -418,8 +418,8 @@ func init() {
 	ser8 := NewPropByValSerializer("UnRefImageDataAfterApply", false, getUnRefImageDataAfterApply, setUnRefImageDataAfterApply)
 	ser9 := NewPropByValSerializer("ClientStorageHint", false, getClientStorageHint, setClientStorageHint)
 	ser10 := NewPropByValSerializer("ResizeNonPowerOfTwoHint", false, getResizeNonPowerOfTwoHint, setResizeNonPowerOfTwoHint)
-	var tydata float64
-	ser11 := NewVectorSerializer("BorderColor", RWDOUBLE, &tydata, getBorderColor, setBorderColor)
+	// tydata := [4]float64{}
+	ser11 := NewPropByValSerializer("BorderColor", false, getBorderColor, setBorderColor)
 	ser12 := NewPropByValSerializer("BorderWidth", false, getBorderWidth, setBorderWidth)
 	ser13 := NewEnumSerializer("InternalFormatMode", getInternalFormatMode, setInternalFormatMode)
 	ser13.Add("USEIMAGEDATAFORMAT", model.USEIMAGEDATAFORMAT)
@@ -458,58 +458,57 @@ func init() {
 	ser19.Add("NONE", model.NONE)
 
 	ser20 := NewPropByValSerializer("ShadowAmbient", false, getShadowAmbient, setShadowAmbient)
-	wrap.AddSerializer(&ser1, RWUSER)
-	wrap.AddSerializer(&ser2, RWUSER)
-	wrap.AddSerializer(&ser3, RWUSER)
-	wrap.AddSerializer(&ser4, RWUSER)
-	wrap.AddSerializer(&ser5, RWUSER)
-	wrap.AddSerializer(&ser6, RWFLOAT)
-	wrap.AddSerializer(&ser7, RWBOOL)
-	wrap.AddSerializer(&ser8, RWBOOL)
-	wrap.AddSerializer(&ser9, RWBOOL)
-	wrap.AddSerializer(&ser10, RWBOOL)
-	wrap.AddSerializer(&ser11, RWVEC4D)
-	wrap.AddSerializer(&ser12, RWINT)
-	wrap.AddSerializer(&ser13, RWENUM)
-	wrap.AddSerializer(&ser14, RWUSER)
-	wrap.AddSerializer(&ser15, RWUSER)
-	wrap.AddSerializer(&ser16, RWUSER)
-	wrap.AddSerializer(&ser17, RWBOOL)
-	wrap.AddSerializer(&ser18, RWENUM)
-	wrap.AddSerializer(&ser19, RWENUM)
-	wrap.AddSerializer(&ser20, RWFLOAT)
-	{
-		uv := AddUpdateWrapperVersionProxy(&wrap, 95)
-		ser21 := NewUserSerializer("ImageAttachment", checkImageAttachment, readImageAttachment, writeImageAttachment)
-		uv.SetLastVersion()
-		wrap.AddSerializer(&ser21, RWUSER)
 
+	wrap.AddSerializer(ser1, RWUSER)
+	wrap.AddSerializer(ser2, RWUSER)
+	wrap.AddSerializer(ser3, RWUSER)
+	wrap.AddSerializer(ser4, RWUSER)
+	wrap.AddSerializer(ser5, RWUSER)
+	wrap.AddSerializer(ser6, RWFLOAT)
+	wrap.AddSerializer(ser7, RWBOOL)
+	wrap.AddSerializer(ser8, RWBOOL)
+	wrap.AddSerializer(ser9, RWBOOL)
+	wrap.AddSerializer(ser10, RWBOOL)
+	wrap.AddSerializer(ser11, RWVEC4D)
+	wrap.AddSerializer(ser12, RWINT)
+	wrap.AddSerializer(ser13, RWENUM)
+	wrap.AddSerializer(ser14, RWUSER)
+	wrap.AddSerializer(ser15, RWUSER)
+	wrap.AddSerializer(ser16, RWUSER)
+	wrap.AddSerializer(ser17, RWBOOL)
+	wrap.AddSerializer(ser18, RWENUM)
+	wrap.AddSerializer(ser19, RWENUM)
+	wrap.AddSerializer(ser20, RWFLOAT)
+	{
+		uv := AddUpdateWrapperVersionProxy(wrap, 95)
+		ser21 := NewUserSerializer("ImageAttachment", checkImageAttachment, readImageAttachment, writeImageAttachment)
+		wrap.AddSerializer(ser21, RWUSER)
+		uv.SetLastVersion()
 	}
 
 	{
-		uv := AddUpdateWrapperVersionProxy(&wrap, 98)
+		uv := AddUpdateWrapperVersionProxy(wrap, 154)
 		wrap.MarkSerializerAsRemoved("ImageAttachment")
 		uv.SetLastVersion()
-
 	}
 
 	{
-		uv := AddUpdateWrapperVersionProxy(&wrap, 98)
+		uv := AddUpdateWrapperVersionProxy(wrap, 98)
 		ser22 := NewUserSerializer("Swizzle", checkSwizzle, readSwizzle, writeSwizzle)
+		wrap.AddSerializer(ser22, RWUSER)
 		uv.SetLastVersion()
-		wrap.AddSerializer(&ser22, RWUSER)
 	}
 
 	{
-		uv := AddUpdateWrapperVersionProxy(&wrap, 155)
+		uv := AddUpdateWrapperVersionProxy(wrap, 155)
 		ser23 := NewPropByValSerializer("MinLOD", false, getMinLOD, setMinLOD)
 		ser24 := NewPropByValSerializer("MaxLOD", false, getMaxLOD, setMaxLOD)
 		ser25 := NewPropByValSerializer("LODBias", false, getLODBias, setLODBias)
+		wrap.AddSerializer(ser23, RWFLOAT)
+		wrap.AddSerializer(ser24, RWFLOAT)
+		wrap.AddSerializer(ser25, RWFLOAT)
 		uv.SetLastVersion()
-		wrap.AddSerializer(&ser23, RWFLOAT)
-		wrap.AddSerializer(&ser24, RWFLOAT)
-		wrap.AddSerializer(&ser25, RWFLOAT)
 	}
 
-	GetObjectWrapperManager().AddWrap(&wrap)
+	GetObjectWrapperManager().AddWrap(wrap)
 }

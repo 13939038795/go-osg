@@ -27,10 +27,12 @@ func checkUserCenter(obj interface{}) bool {
 }
 func readUserCenter(is *OsgIstream, obj interface{}) {
 	lod := obj.(model.LodInterface)
-	ct := lod.GetCenter()
-	r := lod.GetRadius()
-	is.Read(ct)
-	is.Read(r)
+	ct := [3]float64{}
+	var r float64
+	is.Read(&ct)
+	is.Read(&r)
+	lod.SetCenter([3]float32{float32(ct[0]), float32(ct[1]), float32(ct[2])})
+	lod.SetRadius(float32(r))
 }
 
 func writeUserCenter(os *OsgOstream, obj interface{}) {
@@ -81,18 +83,18 @@ func init() {
 	ser1.Add("USEBOUNDINGSPHERECENTER", model.USEBOUNDINGSPHERECENTER)
 	ser1.Add("USERDEFINEDCENTER", model.USERDEFINEDCENTER)
 	ser1.Add("UNIONOFBOUNDINGSPHEREANDUSERDEFINED", model.UNIONOFBOUNDINGSPHEREANDUSERDEFINED)
-	wrap.AddSerializer(&ser1, RWENUM)
+	wrap.AddSerializer(ser1, RWENUM)
 
 	ser2 := NewUserSerializer("UserCenter", checkUserCenter, readUserCenter, writeUserCenter)
-	wrap.AddSerializer(&ser2, RWENUM)
+	wrap.AddSerializer(ser2, RWENUM)
 
 	ser3 := NewEnumSerializer("RangeMode", getRangeMode, setRangeMode)
 	ser3.Add("DISTANCEFROMEYEPOINT", model.DISTANCEFROMEYEPOINT)
 	ser3.Add("PIXELSIZEONSCREEN", model.PIXELSIZEONSCREEN)
-	wrap.AddSerializer(&ser3, RWENUM)
+	wrap.AddSerializer(ser3, RWENUM)
 
 	seruser := NewUserSerializer("RangeList", rangeListChecker, rangeListReader, rangeListWriter)
-	wrap.AddSerializer(&seruser, RWUSER)
-	GetObjectWrapperManager().AddWrap(&wrap)
+	wrap.AddSerializer(seruser, RWUSER)
+	GetObjectWrapperManager().AddWrap(wrap)
 
 }

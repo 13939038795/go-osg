@@ -32,7 +32,7 @@ func writeDatabasePath(os *OsgOstream, obj interface{}) {
 }
 
 func setFrameNumberOfLastTraversal(obj interface{}, pro interface{}) {
-	obj.(*model.PagedLod).FrameNumberOfLastTraversal = pro.(uint)
+	obj.(*model.PagedLod).FrameNumberOfLastTraversal = pro.(uint32)
 }
 
 func getFrameNumberOfLastTraversal(obj interface{}) interface{} {
@@ -40,7 +40,7 @@ func getFrameNumberOfLastTraversal(obj interface{}) interface{} {
 }
 
 func setNumChildrenThatCannotBeExpired(obj interface{}, pro interface{}) {
-	obj.(*model.PagedLod).NumChildrenThatCannotBeExpired = pro.(uint)
+	obj.(*model.PagedLod).NumChildrenThatCannotBeExpired = pro.(uint32)
 }
 
 func getNumChildrenThatCannotBeExpired(obj interface{}) interface{} {
@@ -125,8 +125,9 @@ func readChildren(is *OsgIstream, obj interface{}) {
 		is.Read(is.BEGINBRACKET)
 		for i := 0; i < size; i++ {
 			ob := is.ReadObject(nil)
-			if model.IsBaseOfNode(lod) {
-				lod.AddChild(ob)
+			nd, ok := ob.(model.NodeInterface)
+			if ok {
+				lod.AddChild(nd)
 			}
 		}
 	}
@@ -161,7 +162,7 @@ func writeChildren(os *OsgOstream, obj interface{}) {
 func init() {
 	fn := func() interface{} {
 		pl := model.NewPagedLod()
-		return &pl
+		return pl
 	}
 
 	wrap := NewObjectWrapper("PagedLOD", fn, "osg::Object osg::Node osg::LOD osg::PagedLOD")
@@ -172,11 +173,16 @@ func init() {
 	ser5 := NewUserSerializer("RangeDataList", checkRangeDataList, readRangeDataList, writeRangeDataList)
 	ser6 := NewUserSerializer("Children", checkChildren, readChildren, writeChildren)
 
-	wrap.AddSerializer(&ser1, RWUSER)
-	wrap.AddSerializer(&ser2, RWUINT)
-	wrap.AddSerializer(&ser3, RWUINT)
-	wrap.AddSerializer(&ser4, RWBOOL)
-	wrap.AddSerializer(&ser5, RWUSER)
-	wrap.AddSerializer(&ser6, RWUSER)
-	GetObjectWrapperManager().AddWrap(&wrap)
+	wrap.AddSerializer(ser1, RWUSER)
+	wrap.AddSerializer(ser2, RWUINT)
+	wrap.AddSerializer(ser3, RWUINT)
+	wrap.AddSerializer(ser4, RWBOOL)
+	wrap.AddSerializer(ser5, RWUSER)
+	wrap.AddSerializer(ser6, RWUSER)
+	{
+		uv := AddUpdateWrapperVersionProxy(wrap, 70)
+		wrap.MarkSerializerAsRemoved("FrameNumberOfLastTraversal")
+		uv.SetLastVersion()
+	}
+	GetObjectWrapperManager().AddWrap(wrap)
 }

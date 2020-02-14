@@ -19,17 +19,17 @@ type Geometry struct {
 	VertexAttribList    []*Array
 }
 
-func NewGeometry() Geometry {
+func NewGeometry() *Geometry {
 	dw := NewDrawable()
 	dw.Type = GEOMETRYT
-	return Geometry{Drawable: dw}
+	return &Geometry{Drawable: *dw}
 }
 
-func (g *Geometry) AddPrimitiveSet(p *PrimitiveSet) {
+func (g *Geometry) AddPrimitiveSet(p interface{}) {
 	g.Primitives = append(g.Primitives, p)
 }
 
-func (g *Geometry) SetPrimitiveSet(i int, p *PrimitiveSet) error {
+func (g *Geometry) SetPrimitiveSet(i int, p interface{}) error {
 	l := len(g.Primitives)
 	if i > l-1 {
 		return errors.New("out of range")
@@ -38,7 +38,7 @@ func (g *Geometry) SetPrimitiveSet(i int, p *PrimitiveSet) error {
 	return nil
 }
 
-func (g *Geometry) InsertPrimitiveSet(i int, p *PrimitiveSet) error {
+func (g *Geometry) InsertPrimitiveSet(i int, p interface{}) error {
 	l := len(g.Primitives)
 	if i > l-1 {
 		return errors.New("out of range")
@@ -94,12 +94,11 @@ func (g *Geometry) SetVertexAttribArray(i int, array *Array, binding int32) erro
 	return nil
 }
 
-func (g *Geometry) Accept(inter interface{}) {
-	for _, pri := range g.Primitives {
-		switch p := pri.(type) {
-		case *DrawArrays:
-		case *DrawArrayLengths:
-			p.Accept(inter)
-		}
+func (g *Geometry) Accept(nv *NodeVisitor) {
+	nv.Geos = append(nv.Geos, g)
+	if nv.ValidNodeMask(g) {
+		nv.PushOntoNodePath(g)
+		nv.Apply(g)
+		nv.PopFromNodePath()
 	}
 }

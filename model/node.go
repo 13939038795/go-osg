@@ -1,7 +1,5 @@
 package model
 
-import "reflect"
-
 type NodePath []interface{}
 
 const (
@@ -29,12 +27,16 @@ type NodeInterface interface {
 	GetSphereCallback() *ComputeBoundingSphereCallback
 	SetSphereCallback(*ComputeBoundingSphereCallback)
 
+	Ascend(nv *NodeVisitor)
+	Traverse(nv *NodeVisitor)
+
 	GetUpdateCallback() *Callback
 	SetUpdateCallback(*Callback)
 	GetEventCallback() *Callback
 	SetEventCallback(*Callback)
 	GetCullCallback() *Callback
 	SetCullCallback(*Callback)
+	Accept(*NodeVisitor)
 }
 
 type Node struct {
@@ -114,22 +116,24 @@ func (n *Node) SetCullCallback(cb *Callback) {
 	n.CullCallback = cb
 }
 
-func NewNode() Node {
+func NewNode() *Node {
 	obj := NewObject()
 	obj.Type = NODET
-	return Node{Object: obj, NodeMask: 0xffffffff}
+	return &Node{Object: *obj, NodeMask: 0xffffffff}
 }
 
 func (n *Node) Accept(nv *NodeVisitor) {
 	if nv.ValidNodeMask(n) {
 		nv.PushOntoNodePath(n)
 		nv.Apply(n)
-		nv.PopFromNodePath(n)
+		nv.PopFromNodePath()
 	}
 }
 
 func (n *Node) Ascend(nv *NodeVisitor) {
-
+	for _, g := range n.Parents {
+		g.Accept(nv)
+	}
 }
 
 func (n *Node) Traverse(nv *NodeVisitor) {
@@ -138,14 +142,4 @@ func (n *Node) Traverse(nv *NodeVisitor) {
 
 func (n *Node) IsNode() bool {
 	return true
-}
-
-func IsBaseOfNode(obj interface{}) bool {
-	if obj == nil {
-		return false
-	}
-	no := NewNode()
-	baset := reflect.TypeOf(no)
-	t := reflect.TypeOf(obj)
-	return t.Implements(baset)
 }

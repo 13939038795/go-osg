@@ -168,7 +168,7 @@ func getTextureWidth(obj interface{}) interface{} {
 }
 func setTextureWidth(obj interface{}, val interface{}) {
 	t := obj.(*model.TextureCubeMap)
-	t.TextureWidth = val.(uint64)
+	t.TextureWidth = val.(uint32)
 }
 
 func getTextureHeight(obj interface{}) interface{} {
@@ -177,15 +177,15 @@ func getTextureHeight(obj interface{}) interface{} {
 }
 func setTextureHeight(obj interface{}, val interface{}) {
 	t := obj.(*model.TextureCubeMap)
-	t.TextureHeight = val.(uint64)
+	t.TextureHeight = val.(uint32)
 }
 
 func init() {
 	fn := func() interface{} {
 		tg := model.NewTextureCubeMap()
-		return &tg
+		return tg
 	}
-	wrap := NewObjectWrapper2("TextureCubeMap", "flywave::osg::texturecubemap", fn, "osg::Object osg::StateAttribute osg::Texture osg::TextureCubeMap")
+	wrap := NewObjectWrapper("TextureCubeMap", fn, "osg::Object osg::StateAttribute osg::Texture osg::TextureCubeMap")
 	ser1 := NewUserSerializer("PosX", checkPosX, readPosX, writePosX)
 	ser2 := NewUserSerializer("NegX", checkNegX, readNegX, writeNegX)
 	ser3 := NewUserSerializer("PosY", checkPosY, readPosY, writePosY)
@@ -194,15 +194,15 @@ func init() {
 	ser6 := NewUserSerializer("NegZ", checkNegZ, readNegZ, writeNegZ)
 	ser7 := NewPropByValSerializer("TextureWidth", false, getTextureWidth, setTextureWidth)
 	ser8 := NewPropByValSerializer("TextureHeight", false, getTextureHeight, setTextureHeight)
-	wrap.AddSerializer(&ser1, RWUSER)
-	wrap.AddSerializer(&ser2, RWUSER)
-	wrap.AddSerializer(&ser3, RWUSER)
-	wrap.AddSerializer(&ser4, RWUSER)
-	wrap.AddSerializer(&ser5, RWUSER)
-	wrap.AddSerializer(&ser6, RWUSER)
+	wrap.AddSerializer(ser1, RWUSER)
+	wrap.AddSerializer(ser2, RWUSER)
+	wrap.AddSerializer(ser3, RWUSER)
+	wrap.AddSerializer(ser4, RWUSER)
+	wrap.AddSerializer(ser5, RWUSER)
+	wrap.AddSerializer(ser6, RWUSER)
 
-	wrap.AddSerializer(&ser7, RWINT)
-	wrap.AddSerializer(&ser8, RWINT)
+	wrap.AddSerializer(ser7, RWINT)
+	wrap.AddSerializer(ser8, RWINT)
 
-	GetObjectWrapperManager().AddWrap(&wrap)
+	GetObjectWrapperManager().AddWrap(wrap)
 }

@@ -39,6 +39,10 @@ const (
 	PRIMITIVESETT          string = "osg::PrimitiveSet"
 )
 
+type PrimitiveSetInterface interface {
+	Accept(interface{})
+}
+
 type PrimitiveSet struct {
 	BufferData
 	PrimitiveType int32
@@ -46,10 +50,10 @@ type PrimitiveSet struct {
 	Mode          int32
 }
 
-func NewPrimitiveSet() PrimitiveSet {
+func NewPrimitiveSet() *PrimitiveSet {
 	bf := NewBufferData()
 	bf.Type = PRIMITIVESETT
-	return PrimitiveSet{BufferData: bf, NumInstances: 0, Mode: 0}
+	return &PrimitiveSet{BufferData: *bf, NumInstances: 0, Mode: 0}
 }
 
 const (
@@ -74,11 +78,11 @@ func (d *DrawArrays) Accept(functor interface{}) {
 	}
 }
 
-func NewDrawArrays() DrawArrays {
+func NewDrawArrays() *DrawArrays {
 	p := NewPrimitiveSet()
 	p.Type = DRAWARRAYT
 	p.PrimitiveType = IDDRAWARRAYS
-	return DrawArrays{PrimitiveSet: p, First: 0, Count: 0}
+	return &DrawArrays{PrimitiveSet: *p, First: 0, Count: 0}
 }
 
 type DrawArrayLengths struct {
@@ -87,11 +91,11 @@ type DrawArrayLengths struct {
 	First int32
 }
 
-func NewDrawArrayLengths() DrawArrayLengths {
+func NewDrawArrayLengths() *DrawArrayLengths {
 	p := NewPrimitiveSet()
 	p.Type = DRAWARRAYLENGHTT
 	p.PrimitiveType = IDDRAWARRAYLENGTH
-	return DrawArrayLengths{PrimitiveSet: p, First: 0}
+	return &DrawArrayLengths{PrimitiveSet: *p, First: 0}
 }
 
 func (dal *DrawArrayLengths) Accept(functor interface{}) {
@@ -156,11 +160,11 @@ func (dw *DrawElementsUByte) Accept(functor interface{}) {
 	}
 }
 
-func NewDrawElementsUByte() DrawElementsUByte {
+func NewDrawElementsUByte() *DrawElementsUByte {
 	p := NewPrimitiveSet()
 	p.Type = DRWAELEMENTSUBYTET
 	p.PrimitiveType = IDDRAWELEMENTSUBYTE
-	return DrawElementsUByte{PrimitiveSet: p}
+	return &DrawElementsUByte{PrimitiveSet: *p}
 }
 
 type DrawElementsUShort struct {
@@ -192,11 +196,11 @@ func (dw *DrawElementsUShort) Accept(functor interface{}) {
 	}
 }
 
-func NewDrawElementsUShort() DrawElementsUShort {
+func NewDrawElementsUShort() *DrawElementsUShort {
 	p := NewPrimitiveSet()
 	p.Type = DRWAELEMENTSUSHORTT
 	p.PrimitiveType = IDDRAWELEMENTSUSHORT
-	return DrawElementsUShort{PrimitiveSet: p}
+	return &DrawElementsUShort{PrimitiveSet: *p}
 }
 
 type DrawElementsUInt struct {
@@ -228,9 +232,9 @@ func (dw *DrawElementsUInt) Accept(functor interface{}) {
 	}
 }
 
-func NewDrawElementsUInt() DrawElementsUInt {
+func NewDrawElementsUInt() *DrawElementsUInt {
 	p := NewPrimitiveSet()
 	p.Type = DRWAELEMENTSUINTT
 	p.PrimitiveType = IDDRAWELEMENTSUINT
-	return DrawElementsUInt{PrimitiveSet: p}
+	return &DrawElementsUInt{PrimitiveSet: *p}
 }

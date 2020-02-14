@@ -15,7 +15,7 @@ func ChildrenReader(is *OsgIstream, obj interface{}) {
 	for i := 0; i < int(size); i++ {
 		ob := is.ReadObject(nil)
 		if ob != nil {
-			g.AddChild(ob)
+			g.AddChild(ob.(model.NodeInterface))
 		}
 	}
 	is.Read(is.ENDBRACKET)
@@ -36,10 +36,10 @@ func ChildrenWriter(os *OsgOstream, obj interface{}) {
 func init() {
 	fn := func() interface{} {
 		g := model.NewGroup()
-		return &g
+		return g
 	}
 	wrap := NewObjectWrapper("Group", fn, "osg::Object osg::Node osg::Group")
 	ser := NewUserSerializer("Children", ChildrenChecker, ChildrenReader, ChildrenWriter)
-	wrap.AddSerializer(&ser, RWOBJECT)
-	GetObjectWrapperManager().AddWrap(&wrap)
+	wrap.AddSerializer(ser, RWOBJECT)
+	GetObjectWrapperManager().AddWrap(wrap)
 }
